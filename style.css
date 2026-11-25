@@ -181,11 +181,19 @@ body.has-rite #mult-stat { display: flex; }
   transform-origin: 4px 6px;
 }
 
-#mute {
-  pointer-events: auto;
+#hud-actions {
   position: absolute;
   top: 22px;
   right: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  pointer-events: auto;
+  z-index: 6;
+}
+
+#hud-actions button {
   padding: 8px 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -193,13 +201,17 @@ body.has-rite #mult-stat { display: flex; }
   color: var(--muted);
   background: var(--panel);
   border: 1px solid var(--line);
+  text-align: center;
 }
 
+#hud-actions button:hover { color: var(--gold-2); border-color: rgba(228, 194, 122, 0.55); }
+
 #mute[aria-pressed="true"] { color: var(--hell); }
+#cursor-lock[aria-pressed="true"] { color: var(--gold-2); border-color: rgba(228, 194, 122, 0.7); }
 
 #lens-readout {
   position: absolute;
-  top: 78px;
+  top: 148px;
   right: 22px;
   padding: 8px 12px;
   font-size: 12px;
@@ -494,6 +506,48 @@ kbd {
 #verdict-hell:hover { border-color: var(--hell); background: rgba(225, 93, 73, 0.1); }
 #verdict-hell strong { color: var(--hell); }
 
+#settings {
+  top: 50%;
+  left: 22px;
+  transform: translateY(-50%);
+  width: min(360px, calc(100% - 28px));
+  padding: 22px;
+}
+
+#settings h2 { font-size: 40px; }
+
+#sensitivity {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+#sensitivity button {
+  padding: 14px 8px;
+  border: 1px solid var(--line);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+#sensitivity button[aria-pressed="true"] {
+  color: #1a140c;
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+#settings-close {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 13px;
+  padding: 12px 18px;
+  border: 1px solid rgba(228, 194, 122, 0.55);
+  color: var(--gold-2);
+}
+
+#settings-close:hover { background: var(--gold); color: #1a140c; }
+
 #shop {
   top: 50%;
   right: 22px;
@@ -595,8 +649,8 @@ body.has-result #objective-wrap { visibility: hidden; }
 @media (max-width: 980px) {
   #toasts { width: min(230px, 42vw); bottom: 78px; }
   #compass { top: 78px; }
-  #mute { top: 78px; }
-  #lens-readout { top: 124px; }
+  #hud-actions { top: 78px; }
+  #lens-readout { top: 210px; }
   #stats { gap: 12px; }
   .stat { min-width: 52px; }
   .stat strong { font-size: 24px; }

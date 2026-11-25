@@ -55,7 +55,11 @@
         <span id="compass-label">Soul</span>
       </div>
 
-      <button id="mute" type="button" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
+      <div id="hud-actions">
+        <button id="cursor-lock" type="button" aria-pressed="false">Lock cursor</button>
+        <button id="settings-open" type="button">Settings</button>
+        <button id="mute" type="button" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
+      </div>
 
       <div id="lens-readout" class="hidden">Truth Lens · ready</div>
 
@@ -65,7 +69,7 @@
         <p id="prompt"></p>
       </div>
 
-      <p id="hints">WASD move · Mouse look · E claim · F question · T lens · Tab ledger</p>
+      <p id="hints">WASD move · Mouse look · C cursor · E claim · F question · T lens · Tab ledger</p>
       <p id="look-hint" class="hidden">Click to look</p>
     </div>
 
@@ -107,6 +111,21 @@
       <p class="fine">Step back from the mark if you are not ready.</p>
     </section>
 
+    <aside id="settings" class="panel hidden" role="dialog" aria-labelledby="settings-title">
+      <header>
+        <p class="eyebrow">Instruments</p>
+        <h2 id="settings-title">Settings</h2>
+        <p class="fine">How quickly the view turns.</p>
+      </header>
+      <div id="sensitivity" role="radiogroup" aria-label="Camera sensitivity">
+        <button type="button" data-look="slow" aria-pressed="false">Slow</button>
+        <button type="button" data-look="steady" aria-pressed="true">Steady</button>
+        <button type="button" data-look="quick" aria-pressed="false">Quick</button>
+      </div>
+      <p class="fine">Press the cursor button again, or <kbd>C</kbd>, to lock and unlock the mouse.</p>
+      <button id="settings-close" type="button">Close</button>
+    </aside>
+
     <aside id="shop" class="panel hidden" role="dialog" aria-labelledby="shop-title">
       <header>
         <p class="eyebrow">Office supplies</p>
@@ -135,7 +154,7 @@
         <li>Correct filings pay Soul Coins. Press <kbd>Tab</kbd> to spend them.</li>
       </ol>
       <button id="begin" type="button">Begin the audit</button>
-      <p class="fine">Click the view to capture the mouse. Esc releases it. Drag to look if the lock is refused.</p>
+      <p class="fine">Click the view, or press <kbd>C</kbd>, to capture the mouse. Press it again to release the cursor. Drag to look if the lock is refused.</p>
     </section>
 
     <div id="boot">Opening the ledger…</div>

@@ -13,6 +13,12 @@ import {
 } from './world.js';
 
 const SAVE_KEY = 'soul-ledger-v1';
+const SETTINGS_KEY = 'soul-ledger-settings';
+const LOOK = {
+  slow: 0.00055,
+  steady: 0.00105,
+  quick: 0.00215,
+};
 const SPEED = [7.4, 8.73, 10.06, 11.39, 12.73];
 const MULT = [1, 1.5, 2, 3];
 const LENS_DURATION = [0, 2.6, 4.1, 5.6];
@@ -73,6 +79,7 @@ const state = {
   lensCooldown: 0,
 };
 
+let lookChoice = 'steady';
 let yaw = 0;
 let pitch = -0.05;
 let dragging = false;
@@ -91,6 +98,8 @@ const waiting = [];
 let escort = null;
 
 loadSave();
+loadLook();
+ui.setSensitivity(lookChoice);
 
 const clock = new THREE.Clock();
 
@@ -127,6 +136,23 @@ function save() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch {
     // Private mode can refuse storage. The session still plays.
+  }
+}
+
+function loadLook() {
+  try {
+    const data = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (LOOK[data.look]) lookChoice = data.look;
+  } catch {
+    lookChoice = 'steady';
+  }
+}
+
+function saveLook() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ look: lookChoice }));
+  } catch {
+    // Preference stays for this session if storage is blocked.
   }
 }
 
@@ -395,7 +421,8 @@ function syncHud(inZone) {
     lensHot: state.lensActive > 0,
     lensText,
     showLookHint: state.started && !canLook() ? false : state.started && document.pointerLockElement !== canvas,
-    lookHint: lockFailed ? 'Drag to look' : 'Click to look',
+    lookHint: lockFailed ? 'Drag to look' : 'Press C or Lock cursor',
+    cursorLocked: document.pointerLockElement === canvas,
     showVerdict: Boolean(escort) && inZone && horizDist(escort.group.position, DAIS) < 1.25 && !ui.shopOpen() && !ui.dialogueOpen() && !resolving,
   });
 }
@@ -532,7 +559,8 @@ function judge(choice) {
 
 function toggleShop() {
   if (!state.started || resolving) return;
-  if (ui.dialogueOpen()) closeDialogue();
+  if (ui.settingsOpen()) ui.closeSettings();
+  if (ui.dialogueOpen()) ui.closeDialogue();
   if (ui.shopOpen()) {
     closeShop();
     return;
@@ -636,6 +664,32 @@ function requestLook() {
   }
 }
 
+function toggleCursor() {
+  if (!state.started || ui.blocksLook()) return;
+  if (document.pointerLockElement === canvas) {
+    document.exitPointerLock?.();
+    return;
+  }
+  requestLook();
+}
+
+function toggleSettings() {
+  if (!state.started || resolving) return;
+  if (ui.settingsOpen()) {
+    closeSettings();
+    return;
+  }
+  if (ui.shopOpen()) ui.closeShop();
+  if (ui.dialogueOpen()) ui.closeDialogue();
+  clearMoveKeys();
+  document.exitPointerLock?.();
+  ui.openSettings();
+}
+
+function closeSettings() {
+  ui.closeSettings();
+}
+
 ui.api.onBegin = async () => {
   await audio.start();
   state.started = true;
@@ -657,6 +711,15 @@ ui.api.onToggleMute = () => {
   ui.setMuted(muted);
   if (!muted) audio.start();
 };
+ui.api.onToggleCursor = toggleCursor;
+ui.api.onToggleSettings = toggleSettings;
+ui.api.onCloseSettings = closeSettings;
+ui.api.onSensitivity = (choice) => {
+  if (!LOOK[choice]) return;
+  lookChoice = choice;
+  saveLook();
+  audio.click();
+};
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
@@ -670,8 +733,10 @@ window.addEventListener('keydown', (event) => {
   if (key === 'e') claimSoul();
   if (key === 'f') openDialogue();
   if (key === 't') useLens();
+  if (key === 'c') toggleCursor();
   if (key === 'escape') {
-    if (ui.shopOpen()) closeShop();
+    if (ui.settingsOpen()) closeSettings();
+    else if (ui.shopOpen()) closeShop();
     else if (ui.dialogueOpen()) closeDialogue();
   }
   if (ui.dialogueOpen() && key >= '1' && key <= '3') ask(Number(key) - 1);
@@ -693,8 +758,9 @@ window.addEventListener('mousemove', (event) => {
   if (!canLook()) return;
   const locked = document.pointerLockElement === canvas;
   if (!locked && !dragging) return;
-  yaw -= event.movementX * 0.00215;
-  pitch -= event.movementY * 0.00215;
+  const sens = LOOK[lookChoice] || LOOK.steady;
+  yaw -= event.movementX * sens;
+  pitch -= event.movementY * sens;
   pitch = THREE.MathUtils.clamp(pitch, -1.2, 1.15);
 });
 

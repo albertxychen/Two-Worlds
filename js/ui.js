@@ -4,6 +4,7 @@ export function createUI() {
   const dialogue = document.getElementById('dialogue');
   const verdict = document.getElementById('verdict');
   const shop = document.getElementById('shop');
+  const settings = document.getElementById('settings');
   const result = document.getElementById('result');
   const toasts = document.getElementById('toasts');
   const questions = document.getElementById('questions');
@@ -20,6 +21,10 @@ export function createUI() {
     onCloseShop: null,
     onReset: null,
     onToggleMute: null,
+    onToggleCursor: null,
+    onToggleSettings: null,
+    onCloseSettings: null,
+    onSensitivity: null,
   };
 
   let resultTimer = 0;
@@ -34,6 +39,15 @@ export function createUI() {
   document.getElementById('verdict-heaven').addEventListener('click', () => api.onVerdict?.('HEAVEN'));
   document.getElementById('verdict-hell').addEventListener('click', () => api.onVerdict?.('HELL'));
   document.getElementById('mute').addEventListener('click', () => api.onToggleMute?.());
+  document.getElementById('cursor-lock').addEventListener('click', () => api.onToggleCursor?.());
+  document.getElementById('settings-open').addEventListener('click', () => api.onToggleSettings?.());
+  document.getElementById('settings-close').addEventListener('click', () => api.onCloseSettings?.());
+  document.getElementById('sensitivity').addEventListener('click', (event) => {
+    const choice = event.target?.dataset?.look;
+    if (!choice) return;
+    setSensitivity(choice);
+    api.onSensitivity?.(choice);
+  });
 
   const crosshair = document.createElement('div');
   crosshair.id = 'crosshair';
@@ -77,7 +91,20 @@ export function createUI() {
     const look = document.getElementById('look-hint');
     look.classList.toggle('hidden', !state.showLookHint);
     look.textContent = state.lookHint;
+    setCursorLocked(state.cursorLocked);
     setVerdictVisible(state.showVerdict);
+  }
+
+  function setCursorLocked(locked) {
+    const button = document.getElementById('cursor-lock');
+    button.textContent = locked ? 'Unlock cursor' : 'Lock cursor';
+    button.setAttribute('aria-pressed', locked ? 'true' : 'false');
+  }
+
+  function setSensitivity(choice) {
+    document.querySelectorAll('#sensitivity button').forEach((button) => {
+      button.setAttribute('aria-pressed', button.dataset.look === choice ? 'true' : 'false');
+    });
   }
 
   function setVerdictVisible(show) {
@@ -206,8 +233,20 @@ export function createUI() {
     button.setAttribute('aria-pressed', muted ? 'true' : 'false');
   }
 
+  function settingsOpen() {
+    return !settings.classList.contains('hidden');
+  }
+
+  function openSettings() {
+    settings.classList.remove('hidden');
+  }
+
+  function closeSettings() {
+    settings.classList.add('hidden');
+  }
+
   function blocksLook() {
-    return dialogueOpen() || shopOpen() || !menu.classList.contains('hidden');
+    return dialogueOpen() || shopOpen() || settingsOpen() || !menu.classList.contains('hidden');
   }
 
   return {
@@ -227,6 +266,10 @@ export function createUI() {
     toast,
     flashScreen,
     setMuted,
+    setSensitivity,
+    settingsOpen,
+    openSettings,
+    closeSettings,
     blocksLook,
   };
 }
