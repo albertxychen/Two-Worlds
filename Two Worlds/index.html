@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soul Ledger</title>
+  <meta name="description" content="Soul Ledger — escort the dead to the Judgment Gate and file them where they belong." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" tabindex="-1"></canvas>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="grain" aria-hidden="true"></div>
+    <div id="flash" aria-hidden="true"></div>
+
+    <div id="hud" aria-live="polite">
+      <header id="stats">
+        <div class="stat">
+          <span class="k">Soul Coins</span>
+          <strong id="coins">0</strong>
+        </div>
+        <div class="stat">
+          <span class="k">Streak</span>
+          <strong id="streak">0</strong>
+        </div>
+        <div class="stat">
+          <span class="k">Best</span>
+          <strong id="best">0</strong>
+        </div>
+        <div class="stat">
+          <span class="k">Filed</span>
+          <strong id="filed">0</strong>
+        </div>
+        <div class="stat" id="mult-stat">
+          <span class="k">Rite</span>
+          <strong id="mult">×1</strong>
+        </div>
+      </header>
+
+      <div id="compass">
+        <div id="compass-rose" aria-hidden="true">
+          <b id="compass-arrow"></b>
+        </div>
+        <span id="compass-label">Soul</span>
+      </div>
+
+      <button id="mute" type="button" aria-label="Toggle sound" aria-pressed="false">Sound on</button>
+
+      <div id="lens-readout" class="hidden">Truth Lens · ready</div>
+
+      <div id="objective-wrap">
+        <p id="objective-kicker">Open court</p>
+        <p id="objective">Find a wandering soul</p>
+        <p id="prompt"></p>
+      </div>
+
+      <p id="hints">WASD move · Mouse look · E claim · F question · T lens · Tab ledger</p>
+      <p id="look-hint" class="hidden">Click to look</p>
+    </div>
+
+    <div id="toasts" aria-live="polite"></div>
+
+    <section id="result" class="hidden" role="status">
+      <p id="result-kicker"></p>
+      <h2 id="result-title"></h2>
+      <p id="result-detail"></p>
+      <p id="result-coins"></p>
+    </section>
+
+    <section id="dialogue" class="panel hidden" role="dialog" aria-labelledby="dialogue-title">
+      <header>
+        <p class="eyebrow" id="case-id">Case 0000</p>
+        <h2 id="dialogue-title">Interrogation</h2>
+        <p class="fine">Ask what you need. The body may still be lying.</p>
+      </header>
+      <div id="questions"></div>
+      <div id="transcript"></div>
+      <button id="dialogue-close" type="button">Close the book</button>
+    </section>
+
+    <section id="verdict" class="hidden" role="dialog" aria-labelledby="verdict-title">
+      <p class="eyebrow">The mark</p>
+      <h2 id="verdict-title">Cast the verdict</h2>
+      <div class="verdict-row">
+        <button id="verdict-heaven" type="button">
+          <span>1</span>
+          <strong>Heaven</strong>
+          <em>Ascent</em>
+        </button>
+        <button id="verdict-hell" type="button">
+          <span>2</span>
+          <strong>Hell</strong>
+          <em>Descent</em>
+        </button>
+      </div>
+      <p class="fine">Step back from the mark if you are not ready.</p>
+    </section>
+
+    <aside id="shop" class="panel hidden" role="dialog" aria-labelledby="shop-title">
+      <header>
+        <p class="eyebrow">Office supplies</p>
+        <h2 id="shop-title">The Ledger</h2>
+        <p class="fine">Spend what the dead have earned you.</p>
+      </header>
+      <div id="shop-cards"></div>
+      <footer>
+        <span id="shop-coins">0 Soul Coins</span>
+        <div class="shop-actions">
+          <button id="shop-reset" type="button">Resign post</button>
+          <button id="shop-close" type="button">Close</button>
+        </div>
+      </footer>
+    </aside>
+
+    <section id="menu" role="dialog" aria-labelledby="title">
+      <p class="eyebrow">Office of Final Accounts</p>
+      <h1 id="title">Soul Ledger</h1>
+      <p class="lede">A fogbound courtyard, a long stone bridge, and a gate with two mouths. Walk with the dead. Look closely. Listen harder. File them where they belong.</p>
+      <ol>
+        <li>Wander the court and press <kbd>E</kbd> to claim a soul.</li>
+        <li>Lead them up the bridge. Release the keys and circle a still soul — horns, eyes, tails, halos, and auras are easy to miss.</li>
+        <li>Press <kbd>F</kbd> and ask. Some sins never show on the body, and some innocents barely speak.</li>
+        <li>At the mark, press <kbd>1</kbd> for Heaven or <kbd>2</kbd> for Hell.</li>
+        <li>Correct filings pay Soul Coins. Press <kbd>Tab</kbd> to spend them.</li>
+      </ol>
+      <button id="begin" type="button">Begin the audit</button>
+      <p class="fine">Click the view to capture the mouse. Esc releases it. Drag to look if the lock is refused.</p>
+    </section>
+
+    <div id="boot">Opening the ledger…</div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    setTimeout(() => {
+      const boot = document.getElementById('boot');
+      if (boot && !boot.classList.contains('hidden') && boot.textContent.includes('Opening')) {
+        boot.textContent = 'The ledger could not be fetched. Serve this folder over http so the modules can load.';
+      }
+    }, 8000);
+  </script>
+</body>
+</html>
